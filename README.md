@@ -32,12 +32,7 @@
 - `POST /api/tickets/{id}/close` → close a ticket
 - `GET /api/tickets/stats` → status & priority breakdown + avg resolution time
 
----
-
-## Screenshots
-*(Add some screenshots here after you take them from your live site — UI page, ticket table, stats panel, etc.)*
-
----
+----
 
 ## How to Run Locally
 1. Clone the repo:
