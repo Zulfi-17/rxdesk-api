@@ -1,0 +1,37 @@
+### List (should be [])
+GET http://localhost:8080/api/tickets
+
+### Create
+POST http://localhost:8080/api/tickets
+Content-Type: application/json
+
+{
+  "title": "Printer Broken",
+  "description": "Keeps jamming",
+  "createdBy": "Zulfiqar",
+  "priority": "HIGH"
+}
+
+### List again (should show the new ticket, sorted by priority & time in service)
+GET http://localhost:8080/api/tickets
+
+### Start work
+POST http://localhost:8080/api/tickets/1/start
+
+### Assign
+POST http://localhost:8080/api/tickets/1/assign
+Content-Type: application/json
+
+{ "assignee": "Alice" }
+
+### Close
+POST http://localhost:8080/api/tickets/1/close
+
+### Stats
+GET http://localhost:8080/api/tickets/stats
+
+### Filters (optional)
+GET http://localhost:8080/api/tickets?q=printer
+GET http://localhost:8080/api/tickets?status=OPEN
+GET http://localhost:8080/api/tickets?priority=HIGH
+GET http://localhost:8080/api/tickets?assignedOnly=true

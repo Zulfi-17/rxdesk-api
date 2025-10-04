@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>RxDesk • Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root { --bg:#0f172a; --panel:#111827; --card:#0b1220; --muted:#94a3b8; --text:#e5e7eb; --accent:#60a5fa; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background: linear-gradient(135deg, #0b1220, #0a0f1d 35%, #0b1220 70%); color: var(--text); }
+        header { padding: 18px 20px; border-bottom: 1px solid #1f2937; background: rgba(0,0,0,.25); position: sticky; top:0; backdrop-filter: blur(6px);}
+        header h1 { margin: 0; font-size: 20px; letter-spacing: .4px; }
+        .wrap { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+        .grid { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid #1f2937; border-radius: 14px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+        .card h2 { margin: 0 0 10px; font-size: 16px; color: #cbd5e1; letter-spacing:.3px;}
+        label { display:block; font-size: 12px; color: var(--muted); margin:10px 0 6px; }
+        input, select, button { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #243244; background: #0a1221; color: var(--text); outline: none; }
+        input::placeholder { color: #64748b; }
+        button { cursor: pointer; font-weight: 600; letter-spacing:.2px; }
+        .btn-primary { background: linear-gradient(120deg, #3b82f6, #2563eb); border: none; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn { padding:8px 10px; border:1px solid #243244; border-radius:10px; background:#0a1221; color:var(--text); cursor:pointer;}
+        .btn:hover { border-color:#2f4056 }
+        .btn.green { color: var(--green); }
+        .btn.yellow { color: var(--yellow); }
+        .btn.red { color: var(--red); }
+        .muted { color: var(--muted); font-size:12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #1f2937; }
+        th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing:.3px; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .pill { padding: 3px 8px; border-radius: 100px; font-size: 12px; font-weight: 700; display: inline-block; }
+        .pill.open { color:#60a5fa; background: rgba(96,165,250,.15); border:1px solid rgba(96,165,250,.25); }
+        .pill.inp { color:#f59e0b; background: rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.25); }
+        .pill.closed { color:#22c55e; background: rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.25); }
+        .pill.prio-high { color:#ef4444; background: rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.25);}
+        .pill.prio-med { color:#eab308; background: rgba(234,179,8,.12); border:1px solid rgba(234,179,8,.25);}
+        .pill.prio-low { color:#22c55e; background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.25);}
+        .row { display:flex; gap:10px; }
+        .row > * { flex:1; }
+        .right { text-align:right; }
+        .sp { height: 8px; }
+        .footer { margin-top: 12px; color: var(--muted); font-size: 12px; }
+    </style>
+</head>
+<body>
+<header><h1>RxDesk — Ticketing</h1></header>
+<div class="wrap grid">
+    <!-- Create / Filters -->
+    <div class="card">
+        <h2>Create Ticket</h2>
+        <label>Title</label>
+        <input id="title" placeholder="Printer Broken" />
+        <label>Description</label>
+        <input id="desc" placeholder="Keeps jamming" />
+        <label>Created By</label>
+        <input id="who" placeholder="Zulfiqar" />
+        <label>Priority</label>
+        <select id="priority">
+            <option>LOW</option><option selected>MEDIUM</option><option>HIGH</option>
+        </select>
+        <div class="sp"></div>
+        <button class="btn-primary" id="createBtn">Create</button>
+
+        <div class="sp"></div><div class="sp"></div>
+        <h2>Filters</h2>
+        <label>Keyword / status / priority / assignee</label>
+        <input id="q" placeholder="printer | open | high | alice" />
+        <div class="row">
+            <select id="status">
+                <option value="">Any status</option>
+                <option>OPEN</option>
+                <option>IN_PROGRESS</option>
+                <option>CLOSED</option>
+            </select>
+            <select id="prio">
+                <option value="">Any priority</option>
+                <option>LOW</option>
+                <option>MEDIUM</option>
+                <option>HIGH</option>
+            </select>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+            <label style="display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="assignedOnly" /> <span class="muted">Assigned only</span>
+            </label>
+            <div style="flex:1"></div>
+            <button class="btn" id="applyBtn">Apply</button>
+            <button class="btn" id="clearBtn">Clear</button>
+        </div>
+        <div class="footer">Tip: Results are sorted by priority (HIGH→LOW), then newest first.</div>
+    </div>
+
+    <!-- Tickets table -->
+    <div class="card">
+        <h2>Tickets</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th><th>Title</th><th>Status</th><th>Priority</th><th>Assignee</th><th class="right">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API = ''; // same origin (served by Spring) → leave empty
+
+    const el = id => document.getElementById(id);
+    const rows = el('rows');
+
+    function pillStatus(s) {
+        const map = { OPEN:'open', IN_PROGRESS:'inp', CLOSED:'closed' };
+        return `<span class="pill ${map[s]||'open'}">${s.replace('_',' ')}</span>`;
+    }
+    function pillPriority(p) {
+        const map = { HIGH:'prio-high', MEDIUM:'prio-med', LOW:'prio-low' };
+        return `<span class="pill ${map[p]||'prio-med'}">${p}</span>`;
+    }
+
+    async function listTickets() {
+        const params = new URLSearchParams();
+        const q = el('q').value.trim();
+        const status = el('status').value;
+        const prio = el('prio').value;
+        const assignedOnly = el('assignedOnly').checked;
+
+        if (q) params.set('q', q);
+        if (status) params.set('status', status);
+        if (prio) params.set('priority', prio);
+        if (assignedOnly) params.set('assignedOnly', 'true');
+
+        const r = await fetch(`${API}/api/tickets?${params.toString()}`);
+        const data = await r.json();
+
+        rows.innerHTML = data.map(t => `
+    <tr>
+      <td>#${t.id}</td>
+      <td>${escapeHtml(t.title)}</td>
+      <td>${pillStatus(t.status)}</td>
+      <td>${pillPriority(t.priority)}</td>
+      <td>${t.assignedTo ? escapeHtml(t.assignedTo) : '<span class="muted">—</span>'}</td>
+      <td class="right">
+        <div class="btn-row">
+          <button class="btn yellow" onclick="start(${t.id})">Start</button>
+          <button class="btn" onclick="assignAsk(${t.id})">Assign</button>
+          <button class="btn green" onclick="closeT(${t.id})">Close</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[m]));
+    }
+
+    async function createTicket() {
+        const body = {
+            title: el('title').value.trim(),
+            description: el('desc').value.trim(),
+            createdBy: el('who').value.trim(),
+            priority: el('priority').value
+        };
+        if (!body.title || !body.createdBy) { alert('Title and Created By are required'); return; }
+        await fetch(`${API}/api/tickets`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        el('title').value = ''; el('desc').value = ''; el('who').value = ''; el('priority').value='MEDIUM';
+        await listTickets();
+    }
+
+    async function start(id) {
+        await fetch(`${API}/api/tickets/${id}/start`, { method:'POST' });
+        await listTickets();
+    }
+    async function closeT(id) {
+        await fetch(`${API}/api/tickets/${id}/close`, { method:'POST' });
+        await listTickets();
+    }
+    async function assignAsk(id) {
+        const who = prompt('Assign to (name/username):');
+        if (!who) return;
+        await fetch(`${API}/api/tickets/${id}/assign`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ assignee: who })
+        });
+        await listTickets();
+    }
+
+    el('createBtn').addEventListener('click', createTicket);
+    el('applyBtn').addEventListener('click', listTickets);
+    el('clearBtn').addEventListener('click', () => { el('q').value=''; el('status').value=''; el('prio').value=''; el('assignedOnly').checked=false; listTickets(); });
+
+    listTickets(); // initial load
+</script>
+</body>
+</html>
